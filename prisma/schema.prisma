@@ -1,0 +1,53 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum TenantPlan {
+  FREE
+  PRO
+}
+
+enum UserRole {
+  ADMIN
+  MEMBER
+}
+
+model Tenant {
+  id        Int        @id @default(autoincrement())
+  name      String
+  slug      String     @unique
+  plan      TenantPlan @default(FREE)
+  users     User[]
+  notes     Note[]
+  createdAt DateTime   @default(now())
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  name      String?
+  role      UserRole @default(MEMBER)
+  tenantId  Int
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  Authored  Note[]   @relation("AuthorNotes")
+  createdAt DateTime @default(now())
+}
+
+model Note {
+  id        Int      @id @default(autoincrement())
+  title     String
+  content   String
+  tenantId  Int
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  authorId  Int?
+  author    User?    @relation("AuthorNotes", fields: [authorId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
