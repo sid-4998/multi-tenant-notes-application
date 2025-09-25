@@ -1,16 +1,14 @@
 const express = require('express');
 const router = express.Router();
 
-const prisma = require('../config/db');          
+const prisma = require('../config/prisma');          
 const authenticateToken = require('../middleware/auth');       
 const requireRole = require('../middleware/role');
 const { hashPassword } = require('../utils/bcrypt'); 
 
-// All tenant routes require authentication
-router.use(authenticateToken);
 
 
-router.post('/:slug/invite', requireRole('ADMIN'), async (req, res) => {
+router.post('/:slug/invite', authenticateToken, requireRole('ADMIN'), async (req, res) => {
   try {
     const { slug } = req.params;
     const { email, role = 'MEMBER', password = 'password' } = req.body;
@@ -52,7 +50,7 @@ router.post('/:slug/invite', requireRole('ADMIN'), async (req, res) => {
 });
 
 
-router.post('/:slug/upgrade', requireRole('ADMIN'), async (req, res) => {
+router.post('/:slug/upgrade', authenticateToken,requireRole('ADMIN'), async (req, res) => {
   try {
     const { slug } = req.params;
 
@@ -78,7 +76,7 @@ router.post('/:slug/upgrade', requireRole('ADMIN'), async (req, res) => {
   }
 });
 
-router.get('/:slug', async (req, res) => {
+router.get('/:slug', authenticateToken, async (req, res) => {
   try {
     const { slug } = req.params;
 

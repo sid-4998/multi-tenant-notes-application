@@ -8,4 +8,4 @@ function requireRole(role) {
   };
 }
 
-module.exports = { requireRole };
+module.exports = requireRole;

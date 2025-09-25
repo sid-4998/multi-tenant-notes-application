@@ -1,13 +1,10 @@
 const express = require("express");
 const router = express.Router();
 const prisma = require("../config/prisma");
-const { authenticateToken } = require("../middleware/auth");
-
-router.use(authenticateToken);
-// All routes below this middleware are protected
+const authenticateToken = require("../middleware/auth");
 
 // create a note
-router.post("/", async (req, res) => {
+router.post("/", authenticateToken, async (req, res) => {
     try {
         const { title, content } = req.body;
 
@@ -37,7 +34,7 @@ router.post("/", async (req, res) => {
 });
 
 // get all notes for the tenant
-router.get("/", async (req, res) => {
+router.get("/", authenticateToken, async (req, res) => {
     try {
         const notes = await prisma.note.findMany({
             where: { tenantId: req.user.tenantId },
@@ -50,7 +47,7 @@ router.get("/", async (req, res) => {
 });
 
 // get a specific note
-router.get("/:id", async (req, res) => {
+router.get("/:id", authenticateToken, async (req, res) => {
     try {
         const note = await prisma.note.findFirst({
             where: { id: Number(req.params.id), tenantId: req.user.tenantId },
@@ -66,7 +63,7 @@ router.get("/:id", async (req, res) => {
 });
 
 // update a note
-router.put("/:id", async (req, res) => {
+router.put("/:id", authenticateToken, async (req, res) => {
     try {
         const { title, content } = req.body;
         const note = await prisma.note.findFirst({
@@ -88,7 +85,7 @@ router.put("/:id", async (req, res) => {
 });
 
 // delete a note
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", authenticateToken, async (req, res) => {
     try {
         const note = await prisma.note.findFirst({
             where: { id: Number(req.params.id), tenantId: req.user.tenantId },
