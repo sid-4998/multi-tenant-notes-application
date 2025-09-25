@@ -1,6 +1,4 @@
-const jwt = require('jsonwebtoken');
-const prisma = require('../config/prisma');
-const SECRET = process.env.JWT_SECRET;
+const { verifyToken } = require("../utils/jwt");
 
 function authenticateToken(req, res, next) {
     const authHeader = req.headers['authorization'];
@@ -10,7 +8,7 @@ function authenticateToken(req, res, next) {
     if(!token) return res.status(401).json({ error: 'Invalid authorization' });
 
     try {
-        const user = jwt.verify(token, SECRET);
+        const user = verifyToken(token, SECRET);
         req.user = user;
         next();
     } catch (err) {
