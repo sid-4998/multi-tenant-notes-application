@@ -18,4 +18,5 @@ app.use('/notes', noteRoutes);
 app.use('/tenants', tenantRoutes);
 app.use('/health', healthRoutes);
 
-module.exports = serverless(app);
+module.exports = app;
+module.exports.handler = serverless(app);
