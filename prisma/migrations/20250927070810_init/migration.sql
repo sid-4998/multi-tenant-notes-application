@@ -22,6 +22,7 @@ CREATE TABLE "public"."User" (
     "password" TEXT NOT NULL,
     "name" TEXT,
     "role" "public"."UserRole" NOT NULL DEFAULT 'MEMBER',
+    "plan" "public"."TenantPlan" NOT NULL DEFAULT 'FREE',
     "tenantId" INTEGER NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 

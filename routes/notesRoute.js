@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const prisma = require("../config/prisma");
+const { prisma } = require("../config/prisma");
 const authenticateToken = require("../middleware/auth");
 
 // create a note
@@ -8,13 +8,12 @@ router.post("/", authenticateToken, async (req, res) => {
     try {
         const { title, content } = req.body;
 
-        const tenant = await prisma.tenant.findUnique({
-             where: { id: req.user.tenantId },
-             include: { notes: true }, 
-        });
-        
-        if(tenant.plan === 'FREE' && tenant.notes.length >= 5) {
-            return res.status(403).json({ error: 'Upgrade to PRO plan to create more notes' });
+        // Check the requesting user's plan and their note count
+        const user = await prisma.user.findUnique({ where: { id: req.user.id }, include: { Authored: true } });
+        if(!user) return res.status(404).json({ error: 'User not found' });
+
+        if(user.plan === 'FREE' && user.Authored.length >= 3) {
+            return res.status(403).json({ error: 'Upgrade to PRO plan to create more notes', code: 'PLAN_LIMIT_REACHED' });
         }
 
         const note = await prisma.note.create({
@@ -36,8 +35,9 @@ router.post("/", authenticateToken, async (req, res) => {
 // get all notes for the tenant
 router.get("/", authenticateToken, async (req, res) => {
     try {
+        // Only return notes authored by the current user (even within the same tenant)
         const notes = await prisma.note.findMany({
-            where: { tenantId: req.user.tenantId },
+            where: { tenantId: req.user.tenantId, authorId: req.user.id },
         });
         res.status(200).json({ notes });
     } catch (err) {
@@ -50,7 +50,7 @@ router.get("/", authenticateToken, async (req, res) => {
 router.get("/:id", authenticateToken, async (req, res) => {
     try {
         const note = await prisma.note.findFirst({
-            where: { id: Number(req.params.id), tenantId: req.user.tenantId },
+            where: { id: Number(req.params.id), tenantId: req.user.tenantId, authorId: req.user.id },
         });
         if (!note) {
             return res.status(404).json({ error: 'Note not found' });
@@ -66,15 +66,16 @@ router.get("/:id", authenticateToken, async (req, res) => {
 router.put("/:id", authenticateToken, async (req, res) => {
     try {
         const { title, content } = req.body;
+        // ensure the note exists and belongs to the current user
         const note = await prisma.note.findFirst({
-            where: { id: Number(req.params.id), tenantId: req.user.tenantId },
+            where: { id: Number(req.params.id), tenantId: req.user.tenantId, authorId: req.user.id },
         });
         if (!note) {
             return res.status(404).json({ error: 'Note not found' });
         }
 
         const updatedNote = await prisma.note.update({
-            where: { id: Number(req.params.id), tenantId: req.user.tenantId },
+            where: { id: Number(req.params.id) },
             data: { title, content },
         });
         res.status(200).json({ message: "Note updated successfully", note: updatedNote });
@@ -87,16 +88,15 @@ router.put("/:id", authenticateToken, async (req, res) => {
 // delete a note
 router.delete("/:id", authenticateToken, async (req, res) => {
     try {
+        // verify ownership first
         const note = await prisma.note.findFirst({
-            where: { id: Number(req.params.id), tenantId: req.user.tenantId },
+            where: { id: Number(req.params.id), tenantId: req.user.tenantId, authorId: req.user.id },
         });
         if (!note) {
             return res.status(404).json({ error: 'Note not found' });
         }
 
-        await prisma.note.delete({
-            where: { id: Number(req.params.id), tenantId: req.user.tenantId },
-        });
+        await prisma.note.delete({ where: { id: Number(req.params.id) } });
         res.status(200).json({ message: "Note deleted successfully" });
     } catch (err) {
         console.log(err);

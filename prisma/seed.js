@@ -28,6 +28,7 @@ async function seed() {
         email: 'admin@acme.test',
         password: pwd,
         role: 'ADMIN',
+        plan: 'FREE',
         tenantId: acme.id,
     },
   });
@@ -41,6 +42,7 @@ async function seed() {
         email: 'user@acme.test',
         password: pwd,
         role: 'MEMBER',
+        plan: 'FREE',
         tenantId: acme.id,
     },
   });
@@ -53,6 +55,7 @@ async function seed() {
           email: 'admin@globex.test',
           password: pwd,
           role: 'ADMIN',
+          plan: 'FREE',
           tenantId: globex.id,
       },
     });
@@ -65,6 +68,7 @@ async function seed() {
             email: 'user@globex.test',
             password: pwd,
             role: 'MEMBER',
+            plan: 'FREE',
             tenantId: globex.id,
         },
     });
