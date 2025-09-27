@@ -6,6 +6,7 @@ const authRoutes = require('../routes/authRoute');
 const noteRoutes = require('../routes/notesRoute');
 const tenantRoutes = require('../routes/tenantRoute');
 const healthRoutes = require('../routes/health');
+const serverless = require('serverless-http');
 
 const app = express();
 
@@ -17,4 +18,4 @@ app.use('/notes', noteRoutes);
 app.use('/tenants', tenantRoutes);
 app.use('/health', healthRoutes);
 
-module.exports = app;
+module.exports = serverless(app);
